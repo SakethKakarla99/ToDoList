@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 
 data class Todo(var text: String, var isdone: Boolean = false)
 
@@ -81,14 +82,33 @@ fun TaskList(
     Column {
         for (t in list) {
             Row(
-                Modifier.fillMaxWidth().padding(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(t.text)
-                Checkbox(checked = t.isdone, onCheckedChange = { onToggle(t) })
-                IconButton(onClick = { onRemove(t) }) {
-                    Icon(Icons.Default.Close, contentDescription = "Remove")
+
+                Text(
+                    text = t.text,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Checkbox(
+                        checked = t.isdone,
+                        onCheckedChange = { onToggle(t) }
+                    )
+                    IconButton(onClick = { onRemove(t) }) {
+                        Icon(Icons.Default.Close, contentDescription = "Remove")
+                    }
                 }
             }
         }
