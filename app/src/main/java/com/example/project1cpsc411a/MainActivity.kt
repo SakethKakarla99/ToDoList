@@ -8,13 +8,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 
 data class Todo(var text: String, var isdone: Boolean = false)
+
+
+private val todoListSaver = listSaver<List<Todo>, Any>(
+    save = { list -> list.flatMap { listOf(it.text, it.isdone) } },
+    restore = { raw -> raw.chunked(2).map { (t, d) -> Todo(t as String, d as Boolean) } }
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,11 +31,12 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-
 fun TodoApplication() {
-
-    var listofTodoItems by remember { mutableStateOf(listOf<Todo>()) }
-    var userinput by remember { mutableStateOf("") }
+    // ✅ survives rotation now
+    var listofTodoItems by rememberSaveable(stateSaver = todoListSaver) {
+        mutableStateOf(emptyList())
+    }
+    var userinput by rememberSaveable { mutableStateOf("") }
 
     Column(Modifier.padding(16.dp)) {
         Text("TODO List")
@@ -41,17 +49,18 @@ fun TodoApplication() {
                 placeholder = { Text("Enter task") }
             )
             Spacer(Modifier.width(8.dp))
-            Button(onClick = {
-                if (userinput.isNotBlank()) {
-                    listofTodoItems = listofTodoItems + Todo(userinput.trim())
-                    userinput = ""
-                }
-            },
+            Button(
+                onClick = {
+                    if (userinput.isNotBlank()) {
+                        listofTodoItems = listofTodoItems + Todo(userinput.trim())
+                        userinput = ""
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF4CAF50),
                     contentColor = Color.Black
                 )
-                ) { Text("Add") }
+            ) { Text("Add") }
         }
 
         Spacer(Modifier.height(16.dp))
@@ -84,7 +93,7 @@ fun TaskList(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                    .padding(vertical = 6.dp, horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
@@ -92,12 +101,8 @@ fun TaskList(
                     text = t.text,
                     modifier = Modifier
                         .weight(1f)
-                        .padding(end = 8.dp),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                        .padding(end = 8.dp)
                 )
-
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
